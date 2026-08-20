@@ -1,0 +1,14 @@
+CLOUDFLARE PAGES FUNCTIONS VERSION
+
+Upload this whole project folder so the structure stays:
+
+index.html
+functions/
+  api.js
+
+Your existing Cloudflare Production variables/secrets should remain:
+- SUPABASE_URL
+- SUPABASE_SERVICE_ROLE_KEY
+- APP_SESSION_SECRET
+
+The website continues using the same Supabase database.

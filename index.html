@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Club Hours Tracker</title>
+  <style>
+    :root{
+      --navy:#14324a;
+      --teal:#2e6f73;
+      --cream:#f7f4ed;
+      --card:#ffffff;
+      --text:#1e2a32;
+      --muted:#6b7780;
+      --border:#d9e0e4;
+      --success:#2f7d4b;
+      --warning:#a86a16;
+      --danger:#a33a3a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:var(--cream);
+      color:var(--text);
+    }
+    header{
+      background:var(--navy);
+      color:white;
+      padding:18px 24px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+    header h1{margin:0;font-size:1.35rem}
+    header .sub{opacity:.85;font-size:.9rem;margin-top:4px}
+    button, select, input{
+      font:inherit;
+    }
+    button{
+      border:0;
+      border-radius:8px;
+      padding:10px 14px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .btn-primary{background:var(--teal);color:white}
+    .btn-secondary{background:#e8eef1;color:var(--navy)}
+    .btn-danger{background:#f8e7e7;color:var(--danger)}
+    .btn-success{background:#e4f2e8;color:var(--success)}
+    .container{
+      max-width:1100px;
+      margin:26px auto;
+      padding:0 18px 40px;
+    }
+    .panel{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:20px;
+      box-shadow:0 4px 12px rgba(0,0,0,.04);
+      margin-bottom:20px;
+    }
+    .login-wrap{
+      min-height:75vh;
+      display:grid;
+      place-items:center;
+    }
+    .login-card{
+      width:min(460px, 94vw);
+    }
+    h2,h3{margin-top:0}
+    label{
+      display:block;
+      font-weight:700;
+      margin:12px 0 6px;
+    }
+    input, select{
+      width:100%;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:8px;
+      background:white;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:14px;
+    }
+    .stat{
+      background:white;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:16px;
+    }
+    .stat .label{font-size:.85rem;color:var(--muted)}
+    .stat .value{font-size:1.75rem;font-weight:800;margin-top:5px}
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:14px;
+    }
+    .toolbar .left,.toolbar .right{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      background:white;
+    }
+    th,td{
+      text-align:left;
+      padding:11px 10px;
+      border-bottom:1px solid var(--border);
+      vertical-align:middle;
+    }
+    th{
+      color:var(--navy);
+      font-size:.88rem;
+      background:#f8fafb;
+    }
+    .badge{
+      display:inline-block;
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:.78rem;
+      font-weight:800;
+    }
+    .approved{background:#e4f2e8;color:var(--success)}
+    .pending{background:#fff0d8;color:var(--warning)}
+    .small{font-size:.87rem;color:var(--muted)}
+    .notice{
+      padding:12px 14px;
+      border-radius:10px;
+      background:#eef5f6;
+      color:#244a4d;
+      margin-bottom:14px;
+    }
+    .hidden{display:none!important}
+    .row-actions{display:flex;gap:6px;flex-wrap:wrap}
+    .empty{
+      text-align:center;
+      color:var(--muted);
+      padding:26px 10px;
+    }
+    .footer-note{
+      color:var(--muted);
+      font-size:.82rem;
+      margin-top:18px;
+    }
+    @media (max-width:780px){
+      .grid{grid-template-columns:repeat(2,1fr)}
+      table{font-size:.88rem}
+      th:nth-child(6),td:nth-child(6){display:none}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Student Club Hours Tracker</h1>
+      <div class="sub">BBQ • Bread • Garden • Events</div>
+    </div>
+    <div id="headerUser" class="hidden">
+      <span id="whoami"></span>
+      <button class="btn-secondary" onclick="logout()">Log Out</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="loginView" class="login-wrap">
+      <div class="panel login-card">
+        <h2>Sign In</h2>
+        <p class="small">Enter your first name, last name, and password to sign in.</p>
+        <label for="firstName">First Name</label>
+        <input id="firstName" type="text" placeholder="Enter your first name" autocomplete="given-name" />
+        <label for="lastName">Last Name</label>
+        <input id="lastName" type="text" placeholder="Enter your last name" autocomplete="family-name" />
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="Enter password" autocomplete="current-password" />
+        <button class="btn-primary" style="width:100%;margin-top:16px" onclick="login()">Sign In</button>
+        <div id="loginMessage" class="small" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <section id="teacherView" class="hidden">
+      <div class="toolbar">
+        <div>
+          <h2 style="margin-bottom:4px">Teacher Dashboard</h2>
+          <div class="small">Enter, edit, and review student club hours.</div>
+          <div id="adminNotice" class="small" style="margin-top:4px"></div>
+        </div>
+        <div class="right">
+          <button class="btn-secondary" onclick="exportCSV()">Export CSV</button>
+          <button class="btn-primary" onclick="showEntryForm()">+ Add Hours</button>
+        </div>
+      </div>
+
+      <div class="grid" id="teacherStats"></div>
+
+      <div id="entryPanel" class="panel hidden">
+        <h3 id="entryTitle">Add Student Hours</h3>
+        <input type="hidden" id="editId" />
+        <div class="grid" style="grid-template-columns:repeat(2,1fr)">
+          <div>
+            <label>Student</label>
+            <select id="entryStudent"></select>
+          </div>
+          <div>
+            <label>Club</label>
+            <select id="entryClub">
+              <option>BBQ Club</option>
+              <option>Bread Club</option>
+              <option>Garden Club</option>
+              <option>Events</option>
+            </select>
+          </div>
+          <div>
+            <label>Date Worked</label>
+            <input id="entryDate" type="date" />
+          </div>
+          <div>
+            <label>Hours</label>
+            <input id="entryHours" type="number" min="0.25" step="0.25" placeholder="Example: 2.5" />
+          </div>
+        </div>
+        <label>Work Details</label>
+        <input id="entryNote" type="text" placeholder="Example: BBQ competition setup, bread production, garden cleanup" />
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button class="btn-primary" onclick="saveEntry()">Save Hours</button>
+          <button class="btn-secondary" onclick="hideEntryForm()">Cancel</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="toolbar">
+          <div>
+            <h3 style="margin:0">Manage Users</h3>
+            <div class="small">Add students and teachers here. Passwords are stored securely and cannot be viewed. Elizabeth Walters can reset passwords and has full administrator access.</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-primary" onclick="showAddStudentForm()">+ Add Student</button>
+            <button class="btn-secondary" onclick="showAddTeacherForm()">+ Add Teacher</button>
+          </div>
+        </div>
+
+        <div id="userFormPanel" class="hidden" style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px">
+          <h3 id="userFormTitle">Add Student Account</h3>
+          <input type="hidden" id="editUserId" />
+          <div class="grid" style="grid-template-columns:repeat(2,1fr)">
+            <div>
+              <label>First Name</label>
+              <input id="newUserFirstName" type="text" placeholder="First name" />
+            </div>
+            <div>
+              <label>Last Name</label>
+              <input id="newUserLastName" type="text" placeholder="Last name" />
+            </div>
+            <div class="hidden">
+              <label>Account Type</label>
+              <select id="newUserRole">
+                <option value="student">Student</option>
+                <option value="teacher">Teacher</option>
+              </select>
+            </div>
+            <div>
+              <label>Password</label>
+              <input id="newUserPassword" type="text" placeholder="Create a password" />
+            </div>
+          </div>
+          <div id="userFormMessage" class="small" style="margin-top:12px"></div>
+          <div style="display:flex;gap:8px;margin-top:14px">
+            <button class="btn-primary" onclick="saveUser()">Save User</button>
+            <button class="btn-secondary" onclick="hideUserForm()">Cancel</button>
+          </div>
+        </div>
+
+        <div style="overflow:auto;margin-top:14px">
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Type</th><th>Password</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="usersBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="toolbar">
+          <h3 style="margin:0">Student Totals</h3>
+          <div class="right">
+            <select id="studentFilter" onchange="renderTeacher()" style="min-width:190px">
+              <option value="all">All Students</option>
+            </select>
+            <select id="clubFilter" onchange="renderTeacher()" style="min-width:160px">
+              <option value="all">All Clubs</option>
+              <option>BBQ Club</option>
+              <option>Bread Club</option>
+              <option>Garden Club</option>
+              <option>Events</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th><th>BBQ</th><th>Bread</th><th>Garden</th><th>Events</th><th>Total Hours</th>
+              </tr>
+            </thead>
+            <tbody id="studentTotalsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Hour Entries</h3>
+        <div class="small" style="margin-bottom:10px">To remove an entry, click Delete Entry, then click Confirm Delete.</div>
+        <div style="overflow:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th><th>Student</th><th>Club</th><th>Hours</th><th>Work Details</th><th>Entered By</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="entriesBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="studentView" class="hidden">
+      <div>
+        <h2 id="studentWelcome">My Club Hours</h2>
+        <div class="notice">You are signed in to your student account. Your recorded hours are shown below. You cannot add, change, or delete hours.</div>
+      </div>
+      <div class="grid" id="studentStats"></div>
+      <div class="panel">
+        <h3>Where I Worked</h3><p class="small">This shows each club, date, hours worked, and the work details entered by your teacher.</p>
+        <div style="overflow:auto">
+          <table>
+            <thead>
+              <tr><th>Date</th><th>Club</th><th>Hours</th><th>Work Details</th></tr>
+            </thead>
+            <tbody id="studentEntriesBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>BBQ Club Work</h3>
+        <div id="bbqDetail" class="small"></div>
+      </div>
+      <div class="panel">
+        <h3>Bread Club Work</h3>
+        <div id="breadDetail" class="small"></div>
+      </div>
+      <div class="panel">
+        <h3>Garden Club Work</h3>
+        <div id="gardenDetail" class="small"></div>
+      </div>
+      <div class="panel">
+        <h3>Events Work</h3>
+        <div id="eventsDetail" class="small"></div>
+      </div>
+
+    </section>
+  </main>
+
+
+<script>
+let currentUser = null;
+let data = {users:[], entries:[]};
+
+async function api(action, options={}){
+  const response = await fetch(`/api?action=${encodeURIComponent(action)}`, {
+    method: options.method || "GET",
+    headers: {"Content-Type":"application/json"},
+    body: options.body ? JSON.stringify(options.body) : undefined,
+    credentials: "same-origin"
+  });
+  let payload = {};
+  try { payload = await response.json(); } catch {}
+  if(!response.ok) throw new Error(payload.error || "Something went wrong.");
+  return payload;
+}
+
+function normalizeName(value){
+  return String(value || "").trim().replace(/\s+/g," ");
+}
+function studentName(id){ return data.users.find(u=>u.id===id)?.name || "Unknown"; }
+function sum(entries){ return entries.reduce((a,e)=>a+Number(e.hours),0); }
+function clubSum(studentId, club){
+  return sum(data.entries.filter(e=>e.studentId===studentId && e.club===club));
+}
+function statCard(label,value){
+  return `<div class="stat"><div class="label">${label}</div><div class="value">${Number(value).toFixed(2).replace(/\.00$/,"")}</div></div>`;
+}
+function escapeHtml(v){
+  return String(v ?? "").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+}
+
+async function init(){
+  try{
+    const result = await api("me");
+    if(result.user){
+      currentUser = result.user;
+      await enterApp();
+    }
+  }catch{}
+}
+
+async function login(){
+  const firstName=document.getElementById("firstName").value.trim();
+  const lastName=document.getElementById("lastName").value.trim();
+  const password=document.getElementById("password").value.trim();
+  const msg=document.getElementById("loginMessage");
+  msg.textContent="";
+  if(!firstName || !lastName || !password){
+    msg.textContent="Please enter your first name, last name, and password.";
+    return;
+  }
+  try{
+    const result=await api("login",{method:"POST",body:{firstName,lastName,password}});
+    currentUser=result.user;
+    await enterApp();
+  }catch(err){
+    msg.textContent=err.message;
+  }
+}
+
+async function enterApp(){
+  document.getElementById("loginView").classList.add("hidden");
+  document.getElementById("teacherView").classList.add("hidden");
+  document.getElementById("studentView").classList.add("hidden");
+  document.getElementById("headerUser").classList.remove("hidden");
+  document.getElementById("whoami").textContent=`${currentUser.name} (${currentUser.role})`;
+  await refreshData();
+  if(currentUser.role==="teacher"){
+    document.getElementById("teacherView").classList.remove("hidden");
+    populateTeacherControls();
+    renderTeacher();
+  }else{
+    document.getElementById("studentView").classList.remove("hidden");
+    renderStudent();
+  }
+}
+
+async function refreshData(){
+  const result=await api("data");
+  data.users=result.users || [];
+  data.entries=result.entries || [];
+}
+
+async function logout(){
+  try{ await api("logout",{method:"POST"}); }catch{}
+  currentUser=null;
+  data={users:[],entries:[]};
+  document.getElementById("teacherView").classList.add("hidden");
+  document.getElementById("studentView").classList.add("hidden");
+  document.getElementById("headerUser").classList.add("hidden");
+  document.getElementById("loginView").classList.remove("hidden");
+  document.getElementById("firstName").value="";
+  document.getElementById("lastName").value="";
+  document.getElementById("password").value="";
+}
+
+function populateTeacherControls(){
+  const students=data.users.filter(u=>u.role==="student");
+  document.getElementById("entryStudent").innerHTML=students.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join("");
+  const currentFilter=document.getElementById("studentFilter").value || "all";
+  document.getElementById("studentFilter").innerHTML=`<option value="all">All Students</option>`+
+    students.map(s=>`<option value="${s.id}">${escapeHtml(s.name)}</option>`).join("");
+  if(currentFilter==="all" || students.some(s=>s.id===currentFilter)) document.getElementById("studentFilter").value=currentFilter;
+}
+
+function renderTeacher(){
+  if(!currentUser || currentUser.role!=="teacher") return;
+  const students=data.users.filter(u=>u.role==="student");
+  const adminNotice=document.getElementById("adminNotice");
+  if(adminNotice){
+    adminNotice.textContent=currentUser.isAdmin
+      ? "Administrator access: you can manage all users, passwords, and hour records."
+      : "Teacher access: the Elizabeth Walters administrator account is protected.";
+  }
+  renderUsers();
+
+  document.getElementById("teacherStats").innerHTML =
+    statCard("Students",students.length)+
+    statCard("Total Hours",sum(data.entries))+
+    statCard("Events Hours",sum(data.entries.filter(e=>e.club==="Events")))+
+    statCard("Total Entries",data.entries.length);
+
+  const sf=document.getElementById("studentFilter").value;
+  const cf=document.getElementById("clubFilter").value;
+  let filteredStudents=sf==="all"?students:students.filter(s=>s.id===sf);
+
+  document.getElementById("studentTotalsBody").innerHTML=filteredStudents.map(s=>{
+    const bbq=clubSum(s.id,"BBQ Club"), bread=clubSum(s.id,"Bread Club"), garden=clubSum(s.id,"Garden Club"), events=clubSum(s.id,"Events");
+    return `<tr><td><strong>${escapeHtml(s.name)}</strong></td><td>${bbq}</td><td>${bread}</td><td>${garden}</td><td>${events}</td><td><strong>${bbq+bread+garden+events}</strong></td></tr>`;
+  }).join("") || `<tr><td colspan="6" class="empty">No students found.</td></tr>`;
+
+  let entries=[...data.entries].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  if(sf!=="all") entries=entries.filter(e=>e.studentId===sf);
+  if(cf!=="all") entries=entries.filter(e=>e.club===cf);
+
+  document.getElementById("entriesBody").innerHTML=entries.map(e=>`
+    <tr>
+      <td>${escapeHtml(e.date)}</td>
+      <td>${escapeHtml(studentName(e.studentId))}</td>
+      <td>${escapeHtml(e.club)}</td>
+      <td>${Number(e.hours)}</td>
+      <td>${escapeHtml(e.note||"")}</td>
+      <td>${escapeHtml(e.enteredBy||"")}</td>
+      <td><div class="row-actions">
+        <button class="btn-secondary" onclick="editEntry('${e.id}')">Edit</button>
+        <button id="delete-entry-${e.id}" class="btn-danger" onclick="prepareDeleteEntry('${e.id}')">Delete Entry</button>
+      </div></td>
+    </tr>`).join("") || `<tr><td colspan="7" class="empty">No entries found.</td></tr>`;
+}
+
+function renderStudent(){
+  if(!currentUser || currentUser.role!=="student") return;
+  const id=currentUser.id;
+  document.getElementById("studentWelcome").textContent=`Welcome, ${currentUser.name}`;
+  const bbq=clubSum(id,"BBQ Club"),bread=clubSum(id,"Bread Club"),garden=clubSum(id,"Garden Club"),events=clubSum(id,"Events");
+  document.getElementById("studentStats").innerHTML=
+    statCard("BBQ Club",bbq)+statCard("Bread Club",bread)+statCard("Garden Club",garden)+statCard("Events",events)+statCard("Total Hours",bbq+bread+garden+events);
+
+  const entries=[...data.entries].sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  document.getElementById("studentEntriesBody").innerHTML=entries.map(e=>
+    `<tr><td>${escapeHtml(e.date)}</td><td>${escapeHtml(e.club)}</td><td>${Number(e.hours)}</td><td>${escapeHtml(e.note||"")}</td></tr>`
+  ).join("") || `<tr><td colspan="4" class="empty">No hours yet.</td></tr>`;
+
+  function clubDetails(club){
+    const rows=entries.filter(e=>e.club===club);
+    if(!rows.length) return "No hours recorded for this club yet.";
+    return rows.map(e=>`<div style="padding:8px 0;border-bottom:1px solid var(--border)"><strong>${escapeHtml(e.date)}</strong> — ${Number(e.hours)} hour${Number(e.hours)===1?"":"s"}${e.note?` — ${escapeHtml(e.note)}`:""}</div>`).join("");
+  }
+  document.getElementById("bbqDetail").innerHTML=clubDetails("BBQ Club");
+  document.getElementById("breadDetail").innerHTML=clubDetails("Bread Club");
+  document.getElementById("gardenDetail").innerHTML=clubDetails("Garden Club");
+  document.getElementById("eventsDetail").innerHTML=clubDetails("Events");
+}
+
+function renderUsers(){
+  if(!currentUser || currentUser.role!=="teacher") return;
+  const rows=[...data.users].sort((a,b)=>{
+    if(!!a.isAdmin!==!!b.isAdmin) return a.isAdmin?-1:1;
+    if(a.role!==b.role) return a.role==="teacher"?-1:1;
+    return a.name.localeCompare(b.name);
+  });
+
+  document.getElementById("usersBody").innerHTML=rows.map(u=>{
+    const isSelf=u.id===currentUser.id;
+    const protectedAdmin=!!u.isAdmin;
+    const canEdit= currentUser.isAdmin || !protectedAdmin;
+    let actions="";
+    if(canEdit) actions+=`<button class="btn-secondary" onclick="editUser('${u.id}')">Edit</button>`;
+    if(currentUser.isAdmin && !isSelf && !protectedAdmin){
+      actions+=` <button id="delete-${u.id}" class="btn-danger" onclick="prepareDeleteUser('${u.id}')">Delete User</button>`;
+    }
+    if(!canEdit) actions=`<span class="small">Protected administrator</span>`;
+    if(isSelf) actions+=` <span class="small">Current account</span>`;
+
+    const passwordCell=currentUser.isAdmin && !protectedAdmin
+      ? `<button class="btn-secondary" onclick="editUser('${u.id}',true)">Reset Password</button>`
+      : `<span class="small">Hidden</span>`;
+
+    return `<tr>
+      <td><strong>${escapeHtml(u.name)}</strong>${protectedAdmin?' <span class="badge approved">Admin</span>':''}${isSelf?' <span class="small">(you)</span>':''}</td>
+      <td>${u.role==="teacher"?"Teacher":"Student"}</td>
+      <td>${passwordCell}</td>
+      <td><div class="row-actions">${actions}</div></td>
+    </tr>`;
+  }).join("");
+}
+
+function resetUserForm(){
+  document.getElementById("editUserId").value="";
+  document.getElementById("newUserFirstName").value="";
+  document.getElementById("newUserLastName").value="";
+  document.getElementById("newUserPassword").value="";
+  document.getElementById("userFormMessage").textContent="";
+}
+function showAddStudentForm(){
+  resetUserForm();
+  document.getElementById("newUserRole").value="student";
+  document.getElementById("userFormTitle").textContent="Add Student";
+  document.getElementById("userFormPanel").classList.remove("hidden");
+}
+function showAddTeacherForm(){
+  resetUserForm();
+  document.getElementById("newUserRole").value="teacher";
+  document.getElementById("userFormTitle").textContent="Add Teacher";
+  document.getElementById("userFormPanel").classList.remove("hidden");
+}
+function hideUserForm(){document.getElementById("userFormPanel").classList.add("hidden");}
+
+async function saveUser(){
+  const id=document.getElementById("editUserId").value.trim();
+  const firstName=document.getElementById("newUserFirstName").value.trim();
+  const lastName=document.getElementById("newUserLastName").value.trim();
+  const role=document.getElementById("newUserRole").value;
+  const password=document.getElementById("newUserPassword").value.trim();
+  const msg=document.getElementById("userFormMessage");
+  msg.textContent="";
+  if(!firstName || !lastName){msg.textContent="Please enter a first and last name.";return;}
+  if(!id && !password){msg.textContent="Please create a password.";return;}
+  try{
+    await api("saveUser",{method:"POST",body:{id:id||null,firstName,lastName,role,password:password||null}});
+    await refreshData();
+    populateTeacherControls();
+    renderTeacher();
+    msg.textContent=`${firstName} ${lastName} was saved successfully.`;
+    if(!id){
+      document.getElementById("newUserFirstName").value="";
+      document.getElementById("newUserLastName").value="";
+      document.getElementById("newUserPassword").value="";
+    }
+  }catch(err){msg.textContent=err.message;}
+}
+
+function editUser(id,focusPassword=false){
+  const u=data.users.find(x=>x.id===id); if(!u)return;
+  if(u.isAdmin && !currentUser.isAdmin) return;
+  document.getElementById("userFormPanel").classList.remove("hidden");
+  document.getElementById("userFormTitle").textContent=`Edit ${u.role==="teacher"?"Teacher":"Student"}`;
+  document.getElementById("editUserId").value=u.id;
+  document.getElementById("newUserFirstName").value=u.firstName||"";
+  document.getElementById("newUserLastName").value=u.lastName||"";
+  document.getElementById("newUserRole").value=u.role;
+  document.getElementById("newUserPassword").value="";
+  document.getElementById("newUserPassword").placeholder="Leave blank to keep current password";
+  document.getElementById("userFormMessage").textContent="Passwords cannot be viewed. Enter a new password only to reset it.";
+  if(focusPassword) document.getElementById("newUserPassword").focus();
+}
+
+let pendingDeleteUserId=null;
+function prepareDeleteUser(id){
+  if(pendingDeleteUserId===id){deleteUserNow(id);return;}
+  pendingDeleteUserId=id;
+  const btn=document.getElementById("delete-"+id);
+  if(btn) btn.textContent="Confirm Delete";
+  setTimeout(()=>{if(pendingDeleteUserId===id){pendingDeleteUserId=null;if(btn)btn.textContent="Delete User";}},10000);
+}
+async function deleteUserNow(id){
+  try{
+    await api("deleteUser",{method:"POST",body:{id}});
+    pendingDeleteUserId=null;
+    await refreshData();
+    populateTeacherControls();
+    renderTeacher();
+  }catch(err){alert(err.message);}
+}
+
+function showEntryForm(){
+  document.getElementById("entryPanel").classList.remove("hidden");
+  document.getElementById("entryTitle").textContent="Add Student Hours";
+  document.getElementById("editId").value="";
+  document.getElementById("entryDate").value=new Date().toISOString().slice(0,10);
+  document.getElementById("entryHours").value="";
+  document.getElementById("entryNote").value="";
+}
+function hideEntryForm(){document.getElementById("entryPanel").classList.add("hidden");}
+async function saveEntry(){
+  const id=document.getElementById("editId").value.trim();
+  const studentId=document.getElementById("entryStudent").value;
+  const club=document.getElementById("entryClub").value;
+  const date=document.getElementById("entryDate").value;
+  const hours=Number(document.getElementById("entryHours").value);
+  const note=document.getElementById("entryNote").value.trim();
+  if(!studentId || !date || !hours || hours<=0){alert("Please select a student and enter a valid date and hours.");return;}
+  try{
+    await api("saveEntry",{method:"POST",body:{id:id||null,studentId,club,date,hours,note}});
+    await refreshData();
+    hideEntryForm();
+    renderTeacher();
+  }catch(err){alert(err.message);}
+}
+function editEntry(id){
+  const e=data.entries.find(x=>x.id===id); if(!e)return;
+  showEntryForm();
+  document.getElementById("entryTitle").textContent="Edit Student Hours";
+  document.getElementById("editId").value=e.id;
+  document.getElementById("entryStudent").value=e.studentId;
+  document.getElementById("entryClub").value=e.club;
+  document.getElementById("entryDate").value=e.date;
+  document.getElementById("entryHours").value=e.hours;
+  document.getElementById("entryNote").value=e.note||"";
+}
+
+let pendingDeleteEntryId=null;
+function prepareDeleteEntry(id){
+  if(pendingDeleteEntryId===id){deleteEntryNow(id);return;}
+  pendingDeleteEntryId=id;
+  const btn=document.getElementById("delete-entry-"+id);
+  if(btn)btn.textContent="Confirm Delete";
+  setTimeout(()=>{if(pendingDeleteEntryId===id){pendingDeleteEntryId=null;if(btn)btn.textContent="Delete Entry";}},10000);
+}
+async function deleteEntryNow(id){
+  try{
+    await api("deleteEntry",{method:"POST",body:{id}});
+    pendingDeleteEntryId=null;
+    await refreshData();
+    renderTeacher();
+  }catch(err){alert(err.message);}
+}
+
+function exportCSV(){
+  if(!currentUser || currentUser.role!=="teacher")return;
+  const rows=[["Date","Student","Club","Hours","Work Details","Entered By"]];
+  [...data.entries].sort((a,b)=>String(a.date).localeCompare(String(b.date))).forEach(e=>{
+    rows.push([e.date,studentName(e.studentId),e.club,e.hours,e.note||"",e.enteredBy||""]);
+  });
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(",")).join("\n");
+  const blob=new Blob([csv],{type:"text/csv"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download="student-club-hours.csv";a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.addEventListener("keydown",e=>{
+  if(e.key==="Enter" && !document.getElementById("loginView").classList.contains("hidden")) login();
+});
+init();
+</script>
+</body>
+</html>
